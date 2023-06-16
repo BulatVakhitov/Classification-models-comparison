@@ -21,11 +21,11 @@ def train_val_split(dataset: Dataset, val_size: int) -> Tuple[Subset, Subset]:
 
 class ImageNetteDataset(Dataset):
 
-    def __init__(self, root_dir: str=None, subset: Subset=None) -> None:
+    def __init__(self, root_dir: str=None, size: int=224) -> None:
         self.root_dir = root_dir
         self.transform = transforms.Compose([
             transforms.ToTensor(),
-            transforms.Resize((224, 224)),
+            transforms.Resize((size, size), antialias=True),
             transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                  std=[0.229, 0.224, 0.225])])
         self.data = []
