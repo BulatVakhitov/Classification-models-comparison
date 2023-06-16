@@ -12,23 +12,31 @@ class VGG_Block(nn.Module):
                  padding: int=1, 
                  use_batch_norm: bool=False) -> None:
         super().__init__()
-        self.layers = [nn.Conv2d(kernel_size=3, 
-                                 in_channels=in_channels, 
-                                 out_channels=out_channels, 
-                                 stride=stride, 
-                                 padding=padding, 
-                                 bias=False)]
+        self.layers = [
+            nn.Conv2d(
+                kernel_size=3, 
+                in_channels=in_channels, 
+                out_channels=out_channels, 
+                stride=stride, 
+                padding=padding, 
+                bias=False
+            )
+        ]
         if use_batch_norm:
             self.layers.append(nn.BatchNorm2d(num_features=out_channels))
         self.layers.append(nn.ReLU())
 
         for i in range(1, n_convs):
-            self.layers.append(nn.Conv2d(kernel_size=3, 
-                                         in_channels=out_channels, 
-                                         out_channels=out_channels, 
-                                         stride=stride, 
-                                         padding=padding, 
-                                         bias=False))
+            self.layers.append(
+                nn.Conv2d(
+                    kernel_size=3, 
+                    in_channels=out_channels, 
+                    out_channels=out_channels, 
+                    stride=stride, 
+                    padding=padding, 
+                    bias=False
+                )
+            )
             if use_batch_norm:
                 self.layers.append(nn.BatchNorm2d(num_features=out_channels))
             self.layers.append(nn.ReLU())
