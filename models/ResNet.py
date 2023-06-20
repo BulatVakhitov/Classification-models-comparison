@@ -26,12 +26,12 @@ def conv_block(in_channels,
         )
     ]
 
-    if max_pool:
-        layers.append(nn.MaxPool2d(kernel_size=3, stride=2, padding=1))
     if use_batch_norm:
         layers.append(nn.BatchNorm2d(num_features=out_channels))
     if use_activation:
         layers.append(nn.ReLU())
+    if max_pool:
+        layers.append(nn.MaxPool2d(kernel_size=3, stride=2, padding=1))
 
     return nn.Sequential(*layers)
 
@@ -45,7 +45,7 @@ class BottleNeckBlock(nn.Module):
                  in_channels: int,
                  out_channels: int,
                  use_resnet_d: bool,
-                 downsample: bool = True,
+                 downsample: bool = False,
                  stride: int = 1,
                  groups: int = 1,
                  width: int = 64,
@@ -79,18 +79,21 @@ class BottleNeckBlock(nn.Module):
         else:
             self.se_block = nn.Identity()
 
-        downsample_layers = []
-        if use_resnet_d and stride == 2:
-            downsample_layers.append(nn.AvgPool2d(kernel_size=2,
-                                                  stride=2))
-            stride = 1
-        downsample_layers.append(conv_block(in_channels,
-                                            out_channels * self.expansion,
-                                            downsample_kernel_size,
-                                            stride,
-                                            use_activation=False))
+        if downsample:
+            downsample_layers = []
+            if use_resnet_d and stride == 2:
+                downsample_layers.append(nn.AvgPool2d(kernel_size=2,
+                                                      stride=2))
+                stride = 1
+            downsample_layers.append(conv_block(in_channels,
+                                                out_channels * self.expansion,
+                                                downsample_kernel_size,
+                                                stride,
+                                                use_activation=False))
 
-        self.downsample = nn.Sequential(*downsample_layers)
+            self.downsample = nn.Sequential(*downsample_layers)
+        else:
+            self.downsample = nn.Identity()
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         residual = x
@@ -284,7 +287,7 @@ class ResNet(nn.Module):
 
         downsample = (stride != 1) or (in_channels != out_channels * self.block.expansion)
 
-        if stride == 2 and issubclass(self.block, BottleNeckBlock): # начиная с layer2
+        if stride == 2 and issubclass(self.block, BottleNeckBlock): # starting from layer2
             in_channels = in_channels * self.block.expansion
 
         layers = []
